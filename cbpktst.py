@@ -96,8 +96,8 @@ def compute_clusters_statistic(test_statistic, proximity_matrix, verbose=False):
     else:
         graph = from_numpy_matrix(proximity_matrix)
 
-    # Compute connected components:
-    clusters = connected_components(graph)
+    # Compute connected components and transform in list of lists:
+    clusters = [list(cluster) for cluster in connected_components(graph)]
     if verbose: print("Nr. of clusters: %s. Clusters sizes: %s" % (len(clusters), np.array([len(cl) for cl in clusters])))
     # Compute the cluster statistic:
     cluster_statistic = np.zeros(len(clusters))
