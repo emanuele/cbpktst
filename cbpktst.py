@@ -65,7 +65,7 @@ def compute_mmd2u_and_null_distributions(Ks, m, n, iterations=1000, seed=0, para
     if not parallel:
         for i, K in enumerate(Ks):
             if permutation is None:
-                mmd2u_null = compute_null_distribution(K, m, n, iterations=iterations, verbose=verbose, seed=seed, marker_interval=100) # NOTE: IT IS FUNDAMENTAL THAT THE SAME IS USED SEED FOR EACH UNIT!
+                mmd2u_null = compute_null_distribution(K, m, n, iterations=iterations, verbose=verbose, random_state=seed, marker_interval=100) # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED FOR EACH UNIT!
             else:
                 mmd2u_null = compute_null_distribution_given_permutations(K, m, n, permutation, iterations=iterations)
             
@@ -73,7 +73,7 @@ def compute_mmd2u_and_null_distributions(Ks, m, n, iterations=1000, seed=0, para
     else:
         print("Parallel computation!")
         if permutation is None:
-            results = Parallel(n_jobs=n_jobs, verbose=10)(delayed(compute_null_distribution)(K, m, n, iterations=iterations, verbose=False, seed=seed) for K in Ks) # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED FOR EACH UNIT!
+            results = Parallel(n_jobs=n_jobs, verbose=10)(delayed(compute_null_distribution)(K, m, n, iterations=iterations, verbose=False, random_state=seed) for K in Ks) # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED FOR EACH UNIT!
         else:
             results = Parallel(n_jobs=n_jobs, verbose=10)(delayed(compute_null_distribution_given_permutations)(K, m, n, permutation, iterations=iterations) for K in Ks)
             
