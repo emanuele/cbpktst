@@ -10,7 +10,8 @@ from scipy.stats import ttest_ind
 from cbpktst import compute_clusters_statistic
 
 
-def compute_ttest_clusters(XX, y, p_value_threshold, proximity_matrix_space_time, verbose=False):
+def compute_ttest_clusters(XX, y, p_value_threshold,
+                           proximity_matrix_space_time, verbose=False):
     """See Groppe et al. (Psychophysiology, 2011), p.1718.
     """
     if verbose: print("1) Compute t scores for every timepoint and sensor of interest.")
@@ -45,18 +46,26 @@ def ttest_cluster_statistic_permuted_batch(XX, yy, p_value_threshold, proximity_
     return max_cluster_statistic
 
 
-def cluster_based_permutation_t_test(XX, YY, coordinates, iterations, p_value_threshold, threshold_space, threshold_timesteps, parallel=True, n_jobs=-1, batch_size=20, verbose=False, space_sparse=False):
+def cluster_based_permutation_t_test(XX, YY, coordinates, iterations,
+                                     p_value_threshold,
+                                     threshold_space,
+                                     threshold_timesteps,
+                                     parallel=True, n_jobs=-1,
+                                     batch_size=20, verbose=False,
+                                     space_sparse=False):
     # We prefer to represent the data by stacking together XX and YY
     # by creating a label (yy). This representation helps better
     # coding later on.
     yy = np.concatenate([-np.ones(XX.shape[0]), np.ones(YY.shape[0])])
-    XX = np.vstack([XX,YY])
+    XX = np.vstack([XX, YY])
 
     print("Computing the proximity matrix in space and time.")
     proximity_matrix_space_time = compute_sparse_boolean_proximity_matrix_space_time(coordinates, n_timesteps=XX.shape[2], threshold_space=threshold_space, threshold_timesteps=threshold_timesteps, space_sparse=space_sparse, verbose=verbose)
 
     print("Computing clusters on unpermuted data.")
-    clusters, cluster_statistic = compute_ttest_clusters(XX, yy, p_value_threshold, proximity_matrix_space_time)
+    clusters, cluster_statistic = compute_ttest_clusters(XX, yy,
+                                                         p_value_threshold,
+                                                         proximity_matrix_space_time)
     print("Clusters found (p_value_threshold=%s) : %s" % (p_value_threshold, len(clusters)))
     print("Max cluster_statistic = %s" % cluster_statistic.max())
     print("Min cluster_statistic = %s" % cluster_statistic.min())

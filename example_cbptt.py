@@ -31,13 +31,15 @@ if __name__ == '__main__':
     n = 200
     threshold_space = 1.5
     threshold_timesteps = 1
-    XX, YY, proximity_matrix, coordinates = simulate_2d(d=d, k=k, m=m, n=n, threshold=threshold_space)
+    XX, YY, proximity_matrix, coordinates = simulate_2d(d=d, k=k,
+                                                        m=m, n=n,
+                                                        threshold=threshold_space)
 
     clusters, clusters_over_threshold = cluster_based_permutation_t_test(XX, YY, coordinates, iterations, p_value_threshold, threshold_space, threshold_timesteps, parallel=parallel, n_jobs=n_jobs, batch_size=batch_size, verbose=verbose, space_sparse=space_sparse)
 
     t, p = ttest_ind(XX, YY, axis=0)
     plot_map2d(k, coordinates, t.mean(1))
-    
+
     print("Keeping only significant clusters and producing space values.")
     n_units = k * k
     thresholded_t_map = np.zeros(n_units)
@@ -46,5 +48,5 @@ if __name__ == '__main__':
             unit_s = unit_ts % n_units
             timestep = unit_ts // n_units
             thresholded_t_map[unit_s] = t[unit_s, timestep]
-    
+
     plot_map2d(k, coordinates, thresholded_t_map)

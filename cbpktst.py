@@ -5,10 +5,13 @@ See Olivett et al. (2014).
 
 import numpy as np
 from sklearn.metrics import pairwise_distances
-from kernel_two_sample_test.kernel_two_sample_test import MMD2u, compute_null_distribution, compute_null_distribution_given_permutations
+from kernel_two_sample_test.kernel_two_sample_test import (MMD2u,
+                                                           compute_null_distribution,
+                                                           compute_null_distribution_given_permutations)
 from joblib import Parallel, delayed
 from scipy.sparse import issparse
-from networkx import from_scipy_sparse_matrix, from_numpy_matrix, connected_components
+from networkx import (from_scipy_sparse_matrix, from_numpy_matrix,
+                      connected_components)
 from sys import stdout
 
 
@@ -17,10 +20,12 @@ def precompute_gaussian_kernels(XX, YY, verbose=False):
     the two samples XX and YY. Estimate each sigma2 parameter as median
     distance between the trials of each sample.
     """
-    if verbose: print("Pre-computing the kernel matrix for each unit.")
-    n_units = XX.shape[1] # or YY.shape[1]
-    Ks = [] # here we store all the kernel matrices
-    sigma2s = np.zeros(n_units) # here we store all the sigma2s, one per unit
+    if verbose:
+        print("Pre-computing the kernel matrix for each unit.")
+
+    n_units = XX.shape[1]  # or YY.shape[1]
+    Ks = []  # here we store all the kernel matrices
+    sigma2s = np.zeros(n_units)  # here we store all the sigma2s, one per unit
     m = XX.shape[0]
     n = YY.shape[0]
     for i in range(n_units):
@@ -41,7 +46,10 @@ def precompute_gaussian_kernels(XX, YY, verbose=False):
     return Ks, sigma2s
 
 
-def compute_mmd2u_and_null_distributions(Ks, m, n, iterations=1000, seed=0, parallel=True, permutation=None, n_jobs=-1, verbose=False):
+def compute_mmd2u_and_null_distributions(Ks, m, n, iterations=1000,
+                                         seed=0, parallel=True,
+                                         permutation=None, n_jobs=-1,
+                                         verbose=False):
     """Compute MMD2u statistic and its null-distribution for each unit
     from kernel matrices Ks. Each null-distributions is approximated
     with the given number of iterations. Parallel (multiprocess, with
@@ -65,15 +73,24 @@ def compute_mmd2u_and_null_distributions(Ks, m, n, iterations=1000, seed=0, para
     if not parallel:
         for i, K in enumerate(Ks):
             if permutation is None:
-                mmd2u_null = compute_null_distribution(K, m, n, iterations=iterations, verbose=verbose, random_state=seed, marker_interval=100) # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED FOR EACH UNIT!
+                 # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED
+                 # FOR EACH UNIT!
+                mmd2u_null = compute_null_distribution(K, m, n,
+                                                       iterations=iterations,
+                                                       verbose=verbose,
+                                                       random_state=seed,
+                                                       marker_interval=100)
             else:
-                mmd2u_null = compute_null_distribution_given_permutations(K, m, n, permutation, iterations=iterations)
+                mmd2u_null = compute_null_distribution_given_permutations(K, m, n,
+                                                                          permutation,
+                                                                          iterations=iterations)
             
             unit_statistic_permutation[i, :] = mmd2u_null
     else:
         print("Parallel computation!")
         if permutation is None:
-            results = Parallel(n_jobs=n_jobs, verbose=10)(delayed(compute_null_distribution)(K, m, n, iterations=iterations, verbose=False, random_state=seed) for K in Ks) # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED FOR EACH UNIT!
+            # NOTE: IT IS FUNDAMENTAL THAT THE SAME SEED IS USED FOR EACH UNIT!
+            results = Parallel(n_jobs=n_jobs, verbose=10)(delayed(compute_null_distribution)(K, m, n, iterations=iterations, verbose=False, random_state=seed) for K in Ks)
         else:
             results = Parallel(n_jobs=n_jobs, verbose=10)(delayed(compute_null_distribution_given_permutations)(K, m, n, permutation, iterations=iterations) for K in Ks)
             
@@ -82,7 +99,8 @@ def compute_mmd2u_and_null_distributions(Ks, m, n, iterations=1000, seed=0, para
     return unit_statistic, unit_statistic_permutation
 
 
-def compute_clusters_statistic(test_statistic, proximity_matrix, verbose=False):
+def compute_clusters_statistic(test_statistic, proximity_matrix,
+                               verbose=False):
     """Given a test statistic for each unit and a boolean proximity
     matrix among units, compute the cluster statistic using the
     connected components graph algorithm. It works for sparse
@@ -98,7 +116,9 @@ def compute_clusters_statistic(test_statistic, proximity_matrix, verbose=False):
 
     # Compute connected components and transform in list of lists:
     clusters = [list(cluster) for cluster in connected_components(graph)]
-    if verbose: print("Nr. of clusters: %s. Clusters sizes: %s" % (len(clusters), np.array([len(cl) for cl in clusters])))
+    if verbose:
+        print("Nr. of clusters: %s. Clusters sizes: %s" % (len(clusters), np.array([len(cl) for cl in clusters])))
+
     # Compute the cluster statistic:
     cluster_statistic = np.zeros(len(clusters))
     for i, cluster in enumerate(clusters):
@@ -106,8 +126,10 @@ def compute_clusters_statistic(test_statistic, proximity_matrix, verbose=False):
 
     # final cleanup to prepare easy-to-use results:
     idx = np.argsort(cluster_statistic)[::-1]
-    clusters = np.array([np.array(cl, dtype=np.int) for cl in clusters], dtype=np.object)[idx]
-    if clusters[0].dtype == np.object: # THIS FIXES A NUMPY BUG (OR FEATURE?)
+    clusters = np.array([np.array(cl, dtype=np.int) for cl in
+                         clusters], dtype=np.object)[idx]
+    # THIS FIXES A NUMPY BUG (OR FEATURE?)
+    if clusters[0].dtype == np.object:
         # The bug: it seems not possible to create ndarray of type
         # np.object from arrays all of the *same* lenght and desired
         # dtype, i.e. dtype!=np.object. In this case the desired dtype
@@ -156,7 +178,11 @@ def compute_statistic_threshold(statistic_permutation, p_value_threshold):
     return statistic_threshold.squeeze()
 
 
-def compute_homogeneous_statistics(unit_statistic, unit_statistic_permutation, p_value_threshold, homogeneous_statistic='normalized MMD2u', verbose=True):
+def compute_homogeneous_statistics(unit_statistic,
+                                   unit_statistic_permutation,
+                                   p_value_threshold,
+                                   homogeneous_statistic='normalized MMD2u',
+                                   verbose=True):
     """Compute p_values from permutations and create homogeneous statistics.
     """
     # Compute p-values for each unit    
@@ -168,7 +194,9 @@ def compute_homogeneous_statistics(unit_statistic, unit_statistic_permutation, p
     print("Computing the p-value of each permutation of each unit.")
     p_value_permutation = compute_pvalues_of_permutations(unit_statistic_permutation)
 
-    # Here we try to massage the unit statistic so that it becomes homogeneous across different units, to compute the cluster statistic later on
+    # Here we try to massage the unit statistic so that it becomes
+    # homogeneous across different units, to compute the cluster
+    # statistic later on
     if homogeneous_statistic == '1-p_value': # Here we use (1-p_value) instead of the MMD2u statistic : this is perfectly homogeneous across units because the p_value is uniformly distributed, by definition
         unit_statistic_permutation_homogeneous = 1.0 - p_value_permutation
         unit_statistic_homogeneous = 1.0 - p_value
@@ -189,7 +217,12 @@ def compute_homogeneous_statistics(unit_statistic, unit_statistic_permutation, p
     return p_value, p_value_permutation, unit_statistic_homogeneous, unit_statistic_permutation_homogeneous
 
 
-def cluster_based_permutation_test(unit_statistic, unit_statistic_permutation, proximity_matrix, p_value_threshold=0.05, homogeneous_statistic='normalized MMD2u', verbose=True):
+def cluster_based_permutation_test(unit_statistic,
+                                   unit_statistic_permutation,
+                                   proximity_matrix,
+                                   p_value_threshold=0.05,
+                                   homogeneous_statistic='normalized MMD2u',
+                                   verbose=True):
     """This is the cluster-based permutation test of CBPKTST, where
     the MMD2u permutations at each unit are re-used in order to
     compute the max_cluster_statistic.
