@@ -158,7 +158,7 @@ def compute_pvalues_of_permutations(statistic_permutation):
     """Given permutations of a statistic, compute the p-value of each
     permutation.
 
-    Note: tatistic_permutation can be a matrix units x permutations.
+    Note: statistic_permutation can be a matrix units x permutations.
     """
     statistic_permutation = np.atleast_2d(statistic_permutation)
     iterations = statistic_permutation.shape[1]
@@ -170,7 +170,7 @@ def compute_statistic_threshold(statistic_permutation, p_value_threshold):
     """Compute the threshold of a statistic value given permutations
     and p_value_threshold.
     
-    Note: tatistic_permutation can be a matrix units x permutations.
+    Note: statistic_permutation can be a matrix units x permutations.
     """
     statistic_permutation = np.atleast_2d(statistic_permutation)
     iterations = statistic_permutation.shape[1]
